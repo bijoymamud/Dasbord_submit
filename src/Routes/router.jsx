@@ -5,43 +5,44 @@ import LoginForm from "../Pages/LoginForm/LoginForm";
 import Dashboard from "../Pages/Dashboard/Dashboard";
 import DashboardHome from "../Pages/Dashboard/DashboardHome";
 import EditUser from "../Pages/Dashboard/EditUser";
-import TermsAndConditions from "../Pages/Dashboard/TermsCondition";
-import PrivecyPolicy from "../Pages/Dashboard/PrivacyPolicy"; // Correct component
+import TermsConditon from "../Pages/Dashboard/TermsConditon";
+import PrivacyPolicy from "../Pages/Dashboard/PrivacyPolicy";
+
 
 export const router = createBrowserRouter([
   {
+    
     path: "/",
-    element: <Main />,
-    children: [
-      {
-        path: '/',
-        element: <Home />
-      },
-      {
-        path: '/loginForm',
-        element: <LoginForm />
-      },
-    ],
-  },
-  {
-    path: "dashboard",
     element: <Dashboard />,
     children: [
       {
-        path: "dashboardHome",
+        path: '/',
         element: <DashboardHome />
       },
       {
         path: 'editUser/:id',
         element: <EditUser />
       },
+     
+    ],
+  },
+  {
+    path: '/login',
+    element: <LoginForm />
+  },
+  {
+    path: "settings",
+    element: <Dashboard />,
+    children: [
+      
+      
       {
         path: "termsCondition",
-        element: <TermsAndConditions />
+       element: <TermsConditon/>
       },
       {
         path: "privecyPolicy",
-        element: <PrivecyPolicy /> // Correct component
+       element: <PrivacyPolicy/>
       }
     ]
   }

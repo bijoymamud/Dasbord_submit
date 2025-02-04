@@ -1,54 +1,89 @@
-import React, { useState } from "react";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css"; 
+import React, { useState, useEffect } from "react";
+import { useGetPrivacyPolicyQuery, useUpdatePrivacyPolicyMutation } from "../redux/features/baseApi/baseApi";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"; // Import styles for toast
 
 const PrivacyPolicy = () => {
-  
-  const [editorValue, setEditorValue] = useState("");
+  const { data, error, isLoading } = useGetPrivacyPolicyQuery();
+  const [updatePrivacyPolicy, { isLoading: isUpdating }] = useUpdatePrivacyPolicyMutation();
 
-  
-  const handleSave = () => {
-    console.log("Saved Content:", editorValue);
+  const [text, setText] = useState("");
+  const [isEditing, setIsEditing] = useState(false); // Track edit mode
+
+  // Load terms from API when available
+  useEffect(() => {
+    if (data?.policy?.content) {
+      setText(data.policy.content);
+    }
+  }, [data]);
+
+  // Handle Save (Update the policy)
+  const handleSave = async () => {
+    if (!text.trim()) {
+      toast.error("Content cannot be empty.");
+      return;
+    }
+
+    toast.promise(
+      updatePrivacyPolicy({ content: text }).unwrap(),
+      {
+        pending: "Updating...",
+        success: "Privacy Policy updated!",
+        error: "Failed to update policy. Please try again.",
+      }
+    ).then(() => {
+      setIsEditing(false); // Disable edit mode after saving
+    });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg p-6">
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">Privacy Policy</h1>
+    <section className="p-8">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
 
-     
-        <ReactQuill
-          value={editorValue}
-          onChange={setEditorValue}
-          modules={{
-            toolbar: [
-              [{ header: [1, 2, false] }],
-              ["bold", "italic", "underline", "strike"], 
-              [{ list: "ordered" }, { list: "bullet" }], 
-              [{ align: [] }], 
-              ["link", "image"], 
-              ["clean"], 
-            ],
-          }}
-          className="rounded-2xl"
-          placeholder="Write down your Privacy Policy here..."
-        />
+      <div className="shadow-md p-5 bg-white rounded-lg">
+        <h1 className="text-2xl font-semibold mb-4 text-black">Privacy Policy</h1>
 
-    
-        <div className="flex gap-3 items-center mt-6">
-          <button
-            onClick={handleSave}
-            className="bg-blue-500 text-white font-medium py-2 px-8 rounded-lg hover:bg-blue-600 transition duration-300"
-          >
-            SAVE
-          </button>
+        {/* Show loading state */}
+        {isLoading ? (
+          <p className="text-gray-500">Loading...</p>
+        ) : error ? (
+          <p className="text-red-500">Failed to load privacy policy.</p>
+        ) : (
+          <>
+            <textarea
+              type="text"
+              value={text}
+              rows={8}
+              onChange={(e) => setText(e.target.value)}
+              disabled={!isEditing} // Disable when not in edit mode
+              className={`border p-3 w-full rounded-md focus:outline-none focus:ring focus:ring-blue-300 ${
+                !isEditing ? "bg-gray-100 cursor-not-allowed" : "bg-white text-gray-700 font-semibold"
+              }`}
+            />
 
-          <button className="bg-red-500 text-white font-medium py-2 px-8 rounded-lg hover:bg-red-600 transition duration-300">
-            Cancel
-          </button>
-        </div>
+            {/* Buttons */}
+            <div className="mt-4 flex gap-2 justify-end">
+              {!isEditing ? (
+                <button
+                  onClick={() => setIsEditing(true)} // Enable editing
+                  className="bg-green-500 text-white px-10 py-2 rounded-md hover:bg-green-600"
+                >
+                  Edit
+                </button>
+              ) : (
+                <button
+                  onClick={handleSave}
+                  disabled={isUpdating}
+                  className="bg-blue-500 text-white px-10 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+                >
+                  {isUpdating ? "Updating..." : "Update"}
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </div>
-    </div>
+    </section>
   );
 };
 
